@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Labyrinth Maze - Challenge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+        }
+
+        .game-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .game-info h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .character-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .character {
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .blue-ball {
+            background: #3498db;
+        }
+
+        .yellow {
+            background: #f1c40f;
+            color: #333;
+        }
+
+        .red {
+            background: #e74c3c;
+        }
+
+        .purple {
+            background: #9b59b6;
+        }
+
+        .button-container {
+            margin: 30px 0;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #gameCanvas {
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            background: #1a1a2e;
+            margin: 20px 0;
+            max-width: 100%;
+            display: block;
+        }
+
+        .controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .controls p {
+            color: #666;
+            margin: 10px 0;
+            font-size: 0.95em;
+        }
+
+        footer {
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 The Labyrinth Maze</h1>
+        <p class="subtitle">A Challenging Maze Adventure Game</p>
+
+        <div class="game-info">
+            <h2>📋 Game Description</h2>
+            <p>Play with a blue ball through a maze, stealing items while avoiding enemies!</p>
+        </div>
+
+        <div class="game-info">
+            <h2>👾 Characters</h2>
+            <div class="character-list">
+                <div class="character blue-ball">🔵 Blue Ball (You)</div>
+                <div class="character yellow">🟡 Yellow Defenders</div>
+                <div class="character red">🔴 Red Guards</div>
+                <div class="character purple">🟣 Purple Thieves</div>
+            </div>
+        </div>
+
+        <div class="game-info">
+            <h2>🎯 Objective</h2>
+            <p>
+                ✅ Collect items while playing as the blue ball<br>
+                ⚠️ Avoid yellow defenders<br>
+                🚨 Stay away from red guards<br>
+                💔 Watch out for purple thieves (they steal your items!)
+            </p>
+        </div>
+
+        <div class="controls">
+            <h2>🎮 Controls</h2>
+            <p>Use arrow keys or WASD to move your blue ball</p>
+            <p>Click "Start Game" to begin your adventure!</p>
+        </div>
+
+        <div class="button-container">
+            <button onclick="startGame()">🎮 Start Game</button>
+            <button onclick="showInstructions()">📖 Instructions</button>
+        </div>
+
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+        <footer>
+            <p>The Labyrinth Maze Challenge | GitHub: <a href="https://github.com/johnnynick0001-pixel/Labirinth-challenge" target="_blank">johnnynick0001-pixel/Labirinth-challenge</a></p>
+        </footer>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game variables
+        let gameRunning = false;
+        let playerX = canvas.width / 2;
+        let playerY = canvas.height / 2;
+        const playerSize = 15;
+        const playerSpeed = 5;
+
+        let items = [];
+        let enemies = [];
+        let score = 0;
+
+        // Keyboard input
+        const keys = {};
+        window.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+        });
+        window.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+
+        function startGame() {
+            gameRunning = true;
+            score = 0;
+            playerX = canvas.width / 2;
+            playerY = canvas.height / 2;
+            items = [];
+            enemies = [];
+
+            // Create items
+            for (let i = 0; i < 10; i++) {
+                items.push({
+                    x: Math.random() * (canvas.width - 40) + 20,
+                    y: Math.random() * (canvas.height - 40) + 20,
+                    size: 8
+                });
+            }
+
+            // Create enemies
+            for (let i = 0; i < 3; i++) {
+                enemies.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    type: ['defender', 'guard', 'thief'][i],
+                    speed: 2 + Math.random()
+                });
+            }
+
+            gameLoop();
+        }
+
+        function updatePlayer() {
+            if (keys['arrowup'] || keys['w']) playerY -= playerSpeed;
+            if (keys['arrowdown'] || keys['s']) playerY += playerSpeed;
+            if (keys['arrowleft'] || keys['a']) playerX -= playerSpeed;
+            if (keys['arrowright'] || keys['d']) playerX += playerSpeed;
+
+            // Boundary check
+            playerX = Math.max(playerSize, Math.min(canvas.width - playerSize, playerX));
+            playerY = Math.max(playerSize, Math.min(canvas.height - playerSize, playerY));
+        }
+
+        function drawGame() {
+            // Clear canvas
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw player (blue ball)
+            ctx.fillStyle = '#3498db';
+            ctx.beginPath();
+            ctx.arc(playerX, playerY, playerSize, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw items
+            ctx.fillStyle = '#f1c40f';
+            items.forEach(item => {
+                ctx.beginPath();
+                ctx.arc(item.x, item.y, item.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw enemies
+            enemies.forEach(enemy => {
+                if (enemy.type === 'defender') ctx.fillStyle = '#f1c40f';
+                else if (enemy.type === 'guard') ctx.fillStyle = '#e74c3c';
+                else ctx.fillStyle = '#9b59b6';
+
+                ctx.beginPath();
+                ctx.arc(enemy.x, enemy.y, 12, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw score
+            ctx.fillStyle = '#fff';
+            ctx.font = '20px Arial';
+            ctx.fillText(`Score: ${score}`, 20, 30);
+        }
+
+        function checkCollisions() {
+            // Check item collection
+            items = items.filter(item => {
+                const distance = Math.sqrt((playerX - item.x) ** 2 + (playerY - item.y) ** 2);
+                if (distance < playerSize + item.size) {
+                    score += 10;
+                    return false;
+                }
+                return true;
+            });
+
+            // Check enemy collisions
+            enemies.forEach(enemy => {
+                const distance = Math.sqrt((playerX - enemy.x) ** 2 + (playerY - enemy.y) ** 2);
+                if (distance < playerSize + 12) {
+                    if (enemy.type === 'thief') {
+                        score = Math.max(0, score - 20);
+                    } else {
+                        gameRunning = false;
+                        alert(`Game Over! Final Score: ${score}`);
+                    }
+                }
+            });
+        }
+
+        function updateEnemies() {
+            enemies.forEach(enemy => {
+                const angle = Math.atan2(playerY - enemy.y, playerX - enemy.x);
+                enemy.x += Math.cos(angle) * enemy.speed;
+                enemy.y += Math.sin(angle) * enemy.speed;
+
+                // Boundary check
+                enemy.x = Math.max(12, Math.min(canvas.width - 12, enemy.x));
+                enemy.y = Math.max(12, Math.min(canvas.height - 12, enemy.y));
+            });
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+
+            updatePlayer();
+            updateEnemies();
+            checkCollisions();
+            drawGame();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function showInstructions() {
+            alert(
+                '🎮 LABYRINTH MAZE INSTRUCTIONS\n\n' +
+                '📖 How to Play:\n' +
+                '• Use Arrow Keys or WASD to move the blue ball\n' +
+                '• Collect yellow items to gain points (+10 each)\n' +
+                '• Avoid red guards and yellow defenders (Game Over!)\n' +
+                '• Avoid purple thieves (they steal 20 points!)\n\n' +
+                '🎯 Goal: Collect as many items as possible!\n\n' +
+                'Good Luck! 🍀'
+            );
+        }
+
+        // Draw initial screen
+        ctx.fillStyle = '#1a1a2e';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 32px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Click "Start Game" to begin!', canvas.width / 2, canvas.height / 2);
+    </script>
+</body>
+</html>
