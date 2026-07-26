@@ -1,2 +1,2 @@
-# The Labyrinth maze
-Play with a blue ball onto a maze stealing items,the yellow one are defenders,the red ones are guards and the purple one are thieves (they steal a item of you)
+# O desafio do labirinto 
+Jogue com uma bola azul,roubando itens,os vermelhos são guardas,os amarelos são defensores e os roxos são ladrões (eles roubam itens de você)
